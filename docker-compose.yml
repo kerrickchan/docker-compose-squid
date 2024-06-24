@@ -1,0 +1,16 @@
+version: '3.8'
+
+name: squid
+
+services:
+  squid:
+    extends:
+      file: ./docker-compose-squid.yml
+      service: squid
+
+volumes:
+  squid_cache:
+
+networks:
+  proxy-network:
+    driver: bridge
