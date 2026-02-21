@@ -1,0 +1,15 @@
+services:
+  squid:
+    image: ubuntu/squid:latest
+    ports:
+      - "3128:3128"
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf
+      # - ./cache:/var/spool/squid # Uncomment if you want to persist cache data
+      # - ./logs:/var/log/squid # Uncomment if you want to persist log data
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10g"
+        max-file: "1"
