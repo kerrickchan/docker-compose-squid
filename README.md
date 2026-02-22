@@ -79,3 +79,40 @@ networksetup -setsecurewebproxystate Wi-Fi off
 ```
 
 > **Note:** If accessing the proxy from another device on your network, replace `127.0.0.1` with your Mac's local IP address (find it in **System Settings → Wi-Fi → Details → TCP/IP**).
+
+## Docker Desktop Proxy Bypass
+
+When using Squid inside Docker on macOS with the system proxy enabled, Docker Desktop may route the container's own outbound traffic through the macOS system proxy — creating a **proxy loop** where Squid forwards traffic back to itself, causing HTTPS connections to time out.
+
+### Fix: Exclude Docker from the System Proxy
+
+**Option 1: Add proxy bypass domains in macOS**
+
+```bash
+networksetup -setproxybypassdomains Wi-Fi "*.local" "169.254/16" "127.0.0.1" "localhost"
+```
+
+**Option 2: Disable proxy settings in Docker Desktop**
+
+1. Open **Docker Desktop** → **Settings** → **Resources** → **Proxies**
+2. Ensure **Manual proxy configuration** is **disabled** (or does not point to `127.0.0.1:3128`)
+3. Restart Docker Desktop
+
+**Option 3: Set `NO_PROXY` in the container environment**
+
+Add to `docker-compose.yml`:
+
+```yaml
+services:
+  squid:
+    environment:
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=*
+```
+
+### Why This Happens
+
+Docker Desktop for Mac runs containers inside a Linux VM. The VM inherits the host's proxy settings, so when macOS is configured to use `127.0.0.1:3128` as its proxy, Squid's outbound connections also go through the proxy — itself — causing a loop.
+
+> **Note:** `network_mode: host` does **not** work on Docker Desktop for Mac as a workaround, because the container binds to the VM's network namespace, not the Mac's.
