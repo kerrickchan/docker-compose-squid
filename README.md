@@ -92,11 +92,20 @@ When using Squid inside Docker on macOS with the system proxy enabled, Docker De
 networksetup -setproxybypassdomains Wi-Fi "*.local" "169.254/16" "127.0.0.1" "localhost"
 ```
 
-**Option 2: Disable proxy settings in Docker Desktop**
+**Option 2: Configure Docker Desktop manual proxy with bypass list (Recommended)**
 
 1. Open **Docker Desktop** → **Settings** → **Resources** → **Proxies**
-2. Ensure **Manual proxy configuration** is **disabled** (or does not point to `127.0.0.1:3128`)
-3. Restart Docker Desktop
+2. Enable **Manual proxy configuration**
+3. Set:
+   - HTTP Proxy: `http://127.0.0.1:3128`
+   - HTTPS Proxy: `http://127.0.0.1:3128`
+   - Bypass proxy settings for these hosts & domains:
+     ```
+     *.local,169.254/16,127.0.0.1,localhost
+     ```
+4. Restart Docker Desktop
+
+This tells Docker Desktop to use the proxy for other containers' traffic while bypassing it for local/internal addresses, preventing the Squid container from looping back to itself.
 
 **Option 3: Set `NO_PROXY` in the container environment**
 
